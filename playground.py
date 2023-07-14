@@ -1,7 +1,7 @@
 import os
 from transformers import AutoModelForCausalLM
 
-modelPath="/home/khalefa/projects/ToONNX/Storage/ehartford_WizardLM-7B-V1.0-Uncensored"
+modelPath="Storage/ehartford_WizardLM-7B-V1.0-Uncensored"
 model=AutoModelForCausalLM.from_pretrained(modelPath)
 
 # Get the last part of the path
