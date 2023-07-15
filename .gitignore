@@ -163,3 +163,4 @@ hfdownloader
 Storage/
 bin/
 share/*
+tmp/
