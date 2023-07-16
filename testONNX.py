@@ -18,7 +18,7 @@ modelPath=os.path.abspath(os.path.join(storage,model.replace("/","_")+"_ONNX"))
 if not os.path.exists(modelPath):
     modelPath=os.path.abspath(os.path.join(storage,model.replace("/","_")+"_ONNX_QUANT"))
 print(modelPath)        
-useGPU=True
+useGPU=False
 pastKey=True
 
 provider="CPUExecutionProvider"

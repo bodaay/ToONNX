@@ -74,17 +74,25 @@ if not os.path.exists(modelDestination):
 modelDestination=os.path.abspath(modelDestination)
 try:
     if not os.path.exists(modelPath) or force_redownload:
-        process = subprocess.Popen(['hfdownloader', '-k', '-m', model, '-s', storage], stdout=subprocess.PIPE, universal_newlines=True)
+        # Get the absolute path to your current directory
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        # Get the absolute path to the hfdownloader executable
+        hfdownloader_path = os.path.join(current_dir, 'hfdownloader')
+        process = subprocess.Popen([hfdownloader_path, '-k', '-m', model, '-s', storage], 
+                                stdout=subprocess.PIPE, 
+                                universal_newlines=True)
+        current_line = ''
         while True:
-            output = process.stdout.readline()
-            print(output.strip())
-            # Return code is None while subprocess is running
-            return_code = process.poll()
-            if return_code is not None:
-                print('RETURN CODE', return_code)
-                # Process has finished, read rest of the output
-                for output in process.stdout.readlines():
-                    print(output.strip())
+            char = process.stdout.read(1)
+            if char == '\n' or char == '\r':
+                print(current_line, end='\r' if char == '\r' else '\n')
+                sys.stdout.flush()  # Ensure all output is immediately printed
+                current_line = ''
+            else:
+                current_line += char
+
+            # Break the loop if process is done
+            if process.poll() is not None:
                 break
     
     # print(modelPath)
