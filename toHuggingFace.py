@@ -31,7 +31,7 @@ if not os.path.exists(modelPath):
     modelPath=os.path.abspath(os.path.join(storage,model.replace("/","_")+"_ONNX_QUANT"))
     reponame= model.split("/")[1] + "-ONNX-QUANT"
 
-useGPU=True
+useGPU=False
 pastKey=True
 
 provider="CPUExecutionProvider"
