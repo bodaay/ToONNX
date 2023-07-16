@@ -46,4 +46,4 @@ dqconfig = AutoQuantizationConfig.avx2(is_static=False, per_channel=False)
 
 for q in quantizer:
     print ("Qunatizing: %s"%q)
-    q.quantize(save_dir="./ONNX_QUNAT/",use_external_data_format=True,quantization_config=dqconfig)  # doctest: +IGNORE_RESULT
+    q.quantize(save_dir=modelDestination,use_external_data_format=True,quantization_config=dqconfig)  # doctest: +IGNORE_RESULT

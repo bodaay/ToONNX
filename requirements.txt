@@ -24,18 +24,23 @@ multiprocess==0.70.14
 networkx==3.1
 numpy==1.25.1
 nvidia-cublas-cu11==11.10.3.66
+nvidia-cublas-cu12==12.2.1.16
 nvidia-cuda-cupti-cu11==11.7.101
 nvidia-cuda-nvrtc-cu11==11.7.99
 nvidia-cuda-runtime-cu11==11.7.99
+nvidia-cuda-runtime-cu12==12.2.53
 nvidia-cudnn-cu11==8.5.0.96
+nvidia-cudnn-cu12==8.9.2.26
 nvidia-cufft-cu11==10.9.0.58
 nvidia-curand-cu11==10.2.10.91
 nvidia-cusolver-cu11==11.4.0.1
 nvidia-cusparse-cu11==11.7.4.91
 nvidia-nccl-cu11==2.14.3
 nvidia-nvtx-cu11==11.7.91
+nvidia-tensorrt==99.0.0
 onnx==1.14.0
-onnxruntime==1.15.1
+onnxconverter-common==1.13.0
+onnxruntime-gpu==1.15.1
 optimum @ git+https://github.com/huggingface/optimum.git@c4750f6014d8ac39bca780e1e4381b15eaab9197
 packaging==23.1
 pandas==2.0.3
@@ -51,6 +56,9 @@ safetensors==0.3.1
 sentencepiece==0.1.99
 six==1.16.0
 sympy==1.12
+tensorrt==8.6.1
+tensorrt-bindings==8.6.1
+tensorrt-libs==8.6.1
 tokenizers==0.13.3
 torch==2.0.1
 torchvision==0.15.2

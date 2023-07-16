@@ -74,10 +74,18 @@ if not os.path.exists(modelDestination):
 modelDestination=os.path.abspath(modelDestination)
 try:
     if not os.path.exists(modelPath) or force_redownload:
-        process = subprocess.run(['hfdownloader', '-k', '-m', model, '-s', storage]) # I'm passing -k to skip checking SHA256
-        if process.returncode != 0:
-            print("An error occurred while running hdfdownloader.")
-            sys.exit(process.returncode)
+        process = subprocess.Popen(['hfdownloader', '-k', '-m', model, '-s', storage], stdout=subprocess.PIPE, universal_newlines=True)
+        while True:
+            output = process.stdout.readline()
+            print(output.strip())
+            # Return code is None while subprocess is running
+            return_code = process.poll()
+            if return_code is not None:
+                print('RETURN CODE', return_code)
+                # Process has finished, read rest of the output
+                for output in process.stdout.readlines():
+                    print(output.strip())
+                break
     
     # print(modelPath)
     
@@ -94,6 +102,7 @@ except Exception as e:
 
 
 # transfomer_config = AutoConfig.from_pretrained("ehartford/WizardLM-7B-V1.0-Uncensored")
+
 # print(modelPath)
 # # shit=OnnxConfig(config=transfomer_config)
 # onnx_config = LlamaOnnxConfig(config=transfomer_config,
@@ -106,28 +115,61 @@ except Exception as e:
 # use_cache, is same as runnig task -with-past, which will store the precomputed values, you can read about
 # https://discuss.huggingface.co/t/what-is-the-purpose-of-use-cache-in-decoder/958
 
-# ort_model = ORTModelForCausalLM.from_pretrained(modelPath,config=onnx_config,cache_dir=modelDestination,local_files_only=True,export=True) 
-# tokenizer = AutoTokenizer.from_pretrained(modelPath)
-# ort_model.save_pretrained(modelDestination)
-# tokenizer.save_pretrained(modelDestination)
+mergeData=True
+cache_folder=os.path.abspath(os.path.join(storage,"cache"))
+os.makedirs(cache_folder,exist_ok=True)
+os.environ["XDG_CACHE_HOME"] = cache_folder
+os.environ["TRANSFORMERS_CACHE"] = cache_folder  # This whole cache_dir shit is not working, only way to play with this using XDG_CACHE_HOME env variable
+config = AutoConfig.from_pretrained(modelPath, cache_dir=cache_folder) # This whole cache_dir shit is not working, only way to play with this using XDG_CACHE_HOME env variable
+ort_model = ORTModelForCausalLM.from_pretrained(modelPath,config=config,cache_dir=cache_folder,local_files_only=True,export=True,**{"use_merged":mergeData}) 
+tokenizer = AutoTokenizer.from_pretrained(modelPath,cache_folder=cache_folder)
+ort_model.save_pretrained(modelDestination)
+tokenizer.save_pretrained(modelDestination)
 # below cli command will do all of the above and even better
-
+exit (0)
 # command as a list of arguments
 
 # no optimization
-command = ["optimum-cli", "export", "onnx", "--model", modelPath, "--task", "text-generation", modelDestination]
+command = ["optimum-cli", "export", "onnx", "--model", modelPath, "--task", "text-generation-with-past", modelDestination]
 
 # with optimaization, I need to make the code smarted, of the original model dtype parameter in config.json already 16, no need to waste and generate fp32
 # O1: basic general optimizations.
 # O2: basic and extended general optimizations, transformers-specific fusions.
 # O3: same as O2 with GELU approximation.
 # O4: same as O3 with mixed precision (fp16, GPU-only, requires --device cuda).
-# command = ["optimum-cli", "export", "onnx", "--model", modelPath, "--task", "text-generation","--optimize","O3", modelDestination]
-try:
-    # running the command and capturing the output
-    result = subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
-except subprocess.CalledProcessError as e:
-    print(f"Error occurred: {str(e)}")
-    print(f"Error output:\n{e.output}")
-else:
-    print(f"Command output:\n{result.stdout}")
+
+# command = ["optimum-cli", "export", "onnx", "--model", modelPath, "--task", "text-generation","--optimize","O3", modelDestination] # does not require GPU
+
+# command = ["optimum-cli", "export", "onnx", "--model", modelPath, "--task", "text-generation","--device","cuda","--optimize","O4", modelDestination] # require gpu
+process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+while process.poll() is None:
+    # Read stdout until it's exhausted
+    while True:
+        output = process.stdout.readline().strip()
+        if output == b'':
+            break
+        print(output)
+
+    # Read stderr until it's exhausted
+    while True:
+        err = process.stderr.readline().strip()
+        if err == b'':
+            break
+        print(err)
+
+# command = ["optimum-cli", "export", "onnx", "--model", modelPath, "--task", "text-generation","--optimize","O4", modelDestination]
+# try:
+#     # running the command and capturing the output
+#     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+#     while True:
+#         output = process.stdout.readline()
+#         if output == b'' and process.poll() is not None:
+#             break
+#         if output:
+#             print(output.strip())
+# except subprocess.CalledProcessError as e:
+#     print(f"Error occurred: {str(e)}")
+#     print(f"Error output:\n{e.output}")
+# except Exception as e: # this will catch any exception
+#     print(f"An error occurred: {str(e)}")
